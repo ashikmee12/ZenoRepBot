@@ -23,8 +23,8 @@ def replace_content(text):
         text = re.sub(r'https?://[^\s]+|www\.[^\s]+', YOUR_WEBSITE, text, flags=re.IGNORECASE)
         # চ্যানেল মেনশন প্রতিস্থাপন
         text = re.sub(r'@[a-zA-Z0-9_]+', YOUR_CHANNEL, text)
-    except:
-        pass
+    except Exception as e:
+        logging.error(f"Replace error: {e}")
     return text
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -59,7 +59,7 @@ def main():
     print("🤖 বট চালু হচ্ছে...")
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.DOCUMENT | filters.VIDEO, handle_file))
+    app.add_handler(MessageHandler(filters.Document.ALL | filters.VIDEO, handle_file))
     print("✅ বট চালু হয়েছে!")
     app.run_polling()
 

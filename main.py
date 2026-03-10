@@ -1,10 +1,10 @@
 import os
 import re
 import logging
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # লগিং সেটআপ
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 # ===== আপনার তথ্য =====
 BOT_TOKEN = "8688557974:AAHvHzYWINrRDfGnKymO2gfUdP01J7R3IjQ"
@@ -16,59 +16,34 @@ YOUR_CHANNEL = "@animethic2"
 def replace_content(text):
     if not text:
         return text
-    try:
-        # ওয়েবসাইট লিংক খুঁজে বের করা
-        website_pattern = r'https?://[^\s]+|www\.[^\s]+'
-        website_links = re.findall(website_pattern, text, re.IGNORECASE)
-        for link in website_links:
-            text = text.replace(link, YOUR_WEBSITE, 1)
-        
-        # চ্যানেল মেনশন খুঁজে বের করা
-        channel_pattern = r'@[a-zA-Z0-9_]+'
-        channels = re.findall(channel_pattern, text)
-        for channel in channels:
-            text = text.replace(channel, YOUR_CHANNEL, 1)
-    except:
-        pass
+    # ওয়েবসাইট লিংক
+    text = re.sub(r'https?://[^\s]+|www\.[^\s]+', YOUR_WEBSITE, text)
+    # চ্যানেল মেনশন
+    text = re.sub(r'@[a-zA-Z0-9_]+', YOUR_CHANNEL, text)
     return text
 
 def start(update, context):
-    update.message.reply_text('🔁 বট চালু আছে! ফাইল পাঠান।')
+    update.message.reply_text('বট চালু আছে! ফাইল পাঠান।')
 
 def handle_file(update, context):
     try:
-        original_caption = update.message.caption or ""
-        new_caption = replace_content(original_caption)
+        caption = update.message.caption or ""
+        new_caption = replace_content(caption)
         
         if update.message.document:
-            file = update.message.document
-            context.bot.send_document(
-                chat_id=CHANNEL_ID,
-                document=file.file_id,
-                filename=file.file_name,
-                caption=new_caption
-            )
+            update.message.forward(CHANNEL_ID)
         elif update.message.video:
-            video = update.message.video
-            context.bot.send_video(
-                chat_id=CHANNEL_ID,
-                video=video.file_id,
-                caption=new_caption
-            )
-        
-        update.message.reply_text("✅ চ্যানেলে পাঠানো হয়েছে!")
-        
+            update.message.forward(CHANNEL_ID)
+            
+        update.message.reply_text("✅ ফরোয়ার্ড করা হয়েছে!")
     except Exception as e:
-        update.message.reply_text(f"❌ সমস্যা: {str(e)}")
+        update.message.reply_text(f"Error: {str(e)}")
 
 def main():
     print("বট চালু হচ্ছে...")
-    updater = Updater(BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
-    
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.document | Filters.video, handle_file))
-    
+    updater = Updater(BOT_TOKEN)
+    updater.dispatcher.add_handler(CommandHandler("start", start))
+    updater.dispatcher.add_handler(MessageHandler(Filters.document | Filters.video, handle_file))
     print("বট চালু হয়েছে!")
     updater.start_polling()
     updater.idle()

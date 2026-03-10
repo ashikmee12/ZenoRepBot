@@ -1,7 +1,11 @@
 import os
 import re
+import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+
+# লগিং সেটআপ
+logging.basicConfig(level=logging.INFO)
 
 # ===== আপনার তথ্য =====
 BOT_TOKEN = "8688557974:AAHvHzYWINrRDfGnKymO2gfUdP01J7R3IjQ"
@@ -13,20 +17,22 @@ YOUR_CHANNEL = "@animethic2"
 def replace_content(text):
     if not text:
         return text
-    website_pattern = r'https?://[^\s]+|www\.[^\s]+|[a-zA-Z0-9.-]+\.(?:com|org|net|xyz)(?:/[^\s]*)?'
-    website_links = re.findall(website_pattern, text, re.IGNORECASE)
-    for link in website_links:
-        text = text.replace(link, YOUR_WEBSITE, 1)
-    channel_pattern = r'@[a-zA-Z0-9_]+'
-    channels = re.findall(channel_pattern, text)
-    for channel in channels:
-        text = text.replace(channel, YOUR_CHANNEL, 1)
+    try:
+        website_pattern = r'https?://[^\s]+|www\.[^\s]+'
+        website_links = re.findall(website_pattern, text, re.IGNORECASE)
+        for link in website_links:
+            text = text.replace(link, YOUR_WEBSITE, 1)
+        
+        channel_pattern = r'@[a-zA-Z0-9_]+'
+        channels = re.findall(channel_pattern, text)
+        for channel in channels:
+            text = text.replace(channel, YOUR_CHANNEL, 1)
+    except:
+        pass
     return text
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🔁 বট চালু আছে! ফাইল পাঠান, আমি লিংক পরিবর্তন করে চ্যানেলে ফরোয়ার্ড করব।"
-    )
+    await update.message.reply_text("বট চালু আছে! ফাইল পাঠান।")
 
 async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -52,13 +58,14 @@ async def handle_file(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("✅ চ্যানেলে পাঠানো হয়েছে!")
         
     except Exception as e:
-        await update.message.reply_text(f"❌ সমস্যা: {str(e)}")
+        await update.message.reply_text(f"Error: {str(e)}")
 
 def main():
+    print("বট চালু হচ্ছে...")
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.VIDEO | filters.DOCUMENT, handle_file))
-    print("বট চালু...")
+    app.add_handler(MessageHandler(filters.DOCUMENT | filters.VIDEO, handle_file))
+    print("বট চালু হয়েছে!")
     app.run_polling()
 
 if __name__ == "__main__":

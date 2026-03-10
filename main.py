@@ -1,7 +1,6 @@
 import os
 import re
 import logging
-from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 # লগিং সেটআপ
@@ -33,10 +32,10 @@ def replace_content(text):
         pass
     return text
 
-def start(update: Update, context: CallbackContext):
+def start(update, context):
     update.message.reply_text('🔁 বট চালু আছে! ফাইল পাঠান।')
 
-def handle_file(update: Update, context: CallbackContext):
+def handle_file(update, context):
     try:
         original_caption = update.message.caption or ""
         new_caption = replace_content(original_caption)
